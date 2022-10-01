@@ -15,12 +15,13 @@ exports.sendSms = async (req, res) => {
                 message: "Phone already exist"
             })
         }
+        console.log(check);
 
         let sms = await sendOtp(phone_number)
         console.log("sms");
         console.log(sms.result.valid);
         if (!sms.result.valid) {
-            res.status(200).json({ created: true, hash: sms.hash });
+            res.status(200).json({ created: true, hash: sms.hash,message:"OTP sent successfully" });
         }
     } catch (error) {
         res.status(500).json({ message: error.message })
@@ -43,7 +44,7 @@ exports.otpVerification = async (req, res) => {
                 message: "entered Otp is incorrect"
             })
         }
-        res.status(200).json({ created: true, phone: phone })
+        res.status(200).json({ created: true, phone: phone,message:"OTP verification success" })
     } catch (error) {
         res.status(500).json({ message: error.message })
     }

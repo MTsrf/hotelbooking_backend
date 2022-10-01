@@ -2,6 +2,7 @@ const { validateEmail, validateLength } = require("../helper/validate");
 const admin = require('../models/admin')
 const bcrypt = require('bcrypt');
 const { generateToken } = require("../helper/token");
+const Categories = require("../models/Categories");
 
 
 exports.adminLogin = async (req, res) => {
@@ -41,5 +42,27 @@ exports.adminLogin = async (req, res) => {
         res.status(500).json({
             message:"server error" +error.message
         })
+    }
+}
+
+
+
+exports.addCategory = async (req,res)=>{
+    try {
+        const {category,description,images} = req.body
+        const check = await Categories.findOne({category:category})
+        if (check) {
+            return res.status(400).json({
+                message:"The category already exist.."
+            })
+        }
+        const createdCategory = await new Categories({
+            category:category,
+            description:description,
+            images:images
+        }).save()
+        res.json(createdCategory)
+    } catch (error) {
+        return res.status(500).json({message:error.message})
     }
 }

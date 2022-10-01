@@ -9,6 +9,7 @@ const client = require('twilio')(accountSid, authToken)
 
 
 exports.sendOtp=async(phone)=>{
+    console.log(phone);
     const otp = Math.floor(10000 + Math.random()*900000);
     const ttl = 2*60*1000;
     const expires = Date.now() + ttl;

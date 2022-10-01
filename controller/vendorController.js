@@ -8,6 +8,8 @@ const jwt = require('jsonwebtoken')
 
 exports.vendor_registration = async(req,res)=>{
     try {
+        console.log('hskljsldk');
+        console.log(req.body);
         const {full_name,email,phone_number,password} = req.body
         if (!validateEmail(email)) {
             return res.status(400).json({
@@ -105,13 +107,7 @@ exports.vendor_login = async(req,res)=>{
         const vendor = await Vendor.findOne({email:email})
         if (!vendor) {
             return res.status(400).json({
-                message:"the email address is not exist"
-            })
-        }
-        const activation = await Vendor.findOne({email:email,isVerified:true})
-        if (!activation) {
-            return res.status(400).json({
-                message:"please activate your account"
+                message:"The user is not exist"
             })
         }
         const checkPassword = await bcrypt.compare(password,vendor.password)
@@ -120,12 +116,20 @@ exports.vendor_login = async(req,res)=>{
                 message:"entered incorrect password"
             })
         }
+        const activation = await Vendor.findOne({email:email,isVerified:true})
+        if (!activation) {
+            return res.status(400).json({
+                message:"please activate your account"
+            })
+        }
+        
         const token = generateToken({vendor:vendor._id.toString()})
         res.send({
             id: vendor._id,
             name: vendor.full_name,
             token: token,
             verified: vendor.isVerified,
+            created:true,
             message: "Register Success ! please activate your email to start",
           });
         
