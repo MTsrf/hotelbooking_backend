@@ -19,7 +19,8 @@ const userSchema = mongoose.Schema({
     password:{
         type:String,
         required:[true,"password is required"]
-    }
+    },
+    isVerified:Boolean
 },{ timestamps:true })
 
 module.exports = mongoose.model("user",userSchema)

@@ -5,6 +5,12 @@ const vendorSchema = mongoose.Schema({
     isVerified:{
         type:Boolean
     },
+    adminVerified:{
+        type:Boolean
+    },
+    isBlocked:{
+        type:Boolean
+    },
     full_name:{
         type:String,
         required:[true,"name is required"],

@@ -2,7 +2,9 @@ const { otpVerify, sendOtp } = require("../helper/smsconfig");
 const { generateToken } = require("../helper/token");
 const { validateEmail, validatePhone, validateLength, validataOtpHash } = require("../helper/validate");
 const user = require("../models/user");
-const bcrypt = require('bcrypt')
+const Room = require("../models/Room")
+const bcrypt = require('bcrypt');
+const { RoomContext } = require("twilio/lib/rest/insights/v1/room");
 
 exports.sendSms = async (req, res) => {
     try {
@@ -21,7 +23,7 @@ exports.sendSms = async (req, res) => {
         console.log("sms");
         console.log(sms.result.valid);
         if (!sms.result.valid) {
-            res.status(200).json({ created: true, hash: sms.hash,message:"OTP sent successfully" });
+            res.status(200).json({ success: true, hash: sms.hash,message:"OTP sent successfully" });
         }
     } catch (error) {
         res.status(500).json({ message: error.message })
@@ -93,6 +95,7 @@ exports.user_register = async (req, res) => {
             name: name,
             email: email,
             phone_number: phone,
+            isVerified:true,
             password: passwordHash
         }).save()
         console.log(userdata);
@@ -126,5 +129,16 @@ exports.user_login = async (req, res) => {
         return res.status(200).json({created :true,jwt_key:token})
     } catch (error) {
 
+    }
+}
+
+
+exports.allRooms = async(req,res)=>{
+    try {
+        const getRoom = await Room.find().populate("property").populate("category").limit(10)
+        console.log(getRoom);
+        res.json(getRoom)
+    } catch (error) {
+        return res.status(500).json({message:error.message})
     }
 }

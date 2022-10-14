@@ -5,6 +5,7 @@ const cors = require('cors')
 const fileUpload = require('express-fileupload')
 const dotenv = require('dotenv')
 const {readdirSync} = require('fs')
+const dbConnection = require('./config/db')
 
 dotenv.config()
 const app = express()
@@ -13,6 +14,7 @@ app.use(cors())
 app.use(fileUpload({
     useTempFiles:true,
 }))
+dbConnection()
 
 // const adminRoutes = require('./routes/admin')
 
@@ -24,12 +26,6 @@ readdirSync("./routes").map((item) => app.use("/", require("./routes/" +item)));
 
 
 
-
-//database
-mongoose.connect(process.env.DB_URL,{
-    useNewUrlParser:true,
-}).then(()=>console.log("database connected successfully"))
-.catch((err)=>console.log("error connecting to mongodb",err));
 
 
 const PORT = process.env.PORT || 5000

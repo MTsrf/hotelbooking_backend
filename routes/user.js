@@ -1,15 +1,17 @@
-const { user_register, sendSms, otpVerification, user_login } = require('../controller/userController');
+const { user_register, sendSms, otpVerification, user_login, allRooms } = require('../controller/userController');
 const router = require('express').Router()
 
 
-router.post("/send_otp",sendSms)
+router.post("/sendOtp",sendSms)
 
 
-router.post('/otp_verify',otpVerification)
+router.post('/otpVerify',otpVerification)
 
 
-router.post("/user_signup",user_register)
+router.post("/userSignup",user_register)
 
-router.post("/login_user",user_login)
+router.post("/loginUser",user_login)
+
+router.get("/getRoom",allRooms)
 
 module.exports = router;

@@ -1,6 +1,5 @@
 const mongoose = require('mongoose')
 
-
 const categorySchema = mongoose.Schema({
     category:{
         type:String,
@@ -11,10 +10,11 @@ const categorySchema = mongoose.Schema({
         type:String,
         text:true
     },
-    images:{
-        type:String
-    },
     sub_category:[{
+        category:{
+            type:mongoose.Schema.Types.ObjectId,
+            ref:"category"
+        },
         name:{
             type:String,
             text:true
@@ -23,9 +23,6 @@ const categorySchema = mongoose.Schema({
             type:String,
             text:true
         },
-        images:{
-            type:String
-        }
     }]
 
 },{ timestamps:true })
