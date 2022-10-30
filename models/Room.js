@@ -1,5 +1,4 @@
 const mongoose = require('mongoose')
-
 const roomSchema = mongoose.Schema({
     property:{
         type:mongoose.Schema.Types.ObjectId,
@@ -22,9 +21,7 @@ const roomSchema = mongoose.Schema({
     room_type:{
         type:String
     },
-    quantity:{
-        type:Number
-    },
+    roomNumbers: [{ number: String,isBooked:Boolean,unavailableDates: {type: [Date]}}],
     view:{
         type:String
     },

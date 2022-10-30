@@ -196,7 +196,7 @@ exports.addHotel = async(req,res)=>{
             })
         }
        
-        if (!validateLength(property_details,10,700)) {
+        if (!validateLength(property_details,10,1500)) {
             return res.status(400).json({
                 message:"The Property details minimum 10 character"
             })
@@ -275,7 +275,6 @@ exports.addRoom = async(req,res)=>{
         const roomData = await new Room({
             room_name:room_name,
             room_type:room_type,
-            quantity:no_of_rooms,
             view:view,
             guest:no_of_persons,
             price:price,
@@ -288,6 +287,15 @@ exports.addRoom = async(req,res)=>{
             property:mongoose.Types.ObjectId(property),
             vendor:mongoose.Types.ObjectId(vendor)
         }).save()
+        const roomNumbers = []
+        for (let i = 1; i <= no_of_rooms; i++) {  
+            roomNumbers.push({number:`A${i}`,isBooked:false})
+        }
+        console.log(roomNumbers);
+        const addRoom = await Room.updateOne({_id:roomData._id},{
+            $push:{ roomNumbers:roomNumbers}
+        })
+    
         res.status(200).json({
             roomData,success:true,message:"Successfully added"
         })

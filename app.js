@@ -6,6 +6,7 @@ const fileUpload = require('express-fileupload')
 const dotenv = require('dotenv')
 const {readdirSync} = require('fs')
 const dbConnection = require('./config/db')
+const path = require('path')
 
 dotenv.config()
 const app = express()
@@ -22,7 +23,9 @@ dbConnection()
 readdirSync("./routes").map((item) => app.use("/", require("./routes/" +item)));
 
 // app.use('/admin', adminRoutes)
-
+app.get('/logo.svg',(req,res)=>{
+    res.sendFile(path.join(__dirname,'logo.svg'))
+})
 
 
 

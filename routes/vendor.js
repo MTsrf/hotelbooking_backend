@@ -7,7 +7,7 @@ const router = require('express').Router()
 
 router.post('/vendorSignup',vendor_registration)
 
-router.post('/activateAccount',verifyVendor,activateAccount)
+router.post('/activateAccount',activateAccount)
 
 router.post('/loginVendor',vendorLogin)
 
