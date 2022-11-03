@@ -6,14 +6,11 @@ const user = require('../models/user');
 
 
 const verifyToken = (req, res, next) => {
-    console.log(req.headers.authorization);
     let token
     if (req.headers.authorization &&
         req.headers.authorization.startsWith('Bearer')) {
         try {
             token = req.headers.authorization.split(' ')[1]
-            console.log("===============");
-            console.log(token);
             jwt.verify(token, process.env.JWT_KEY, (err, user) => {
                 if (err) {
                     return res.status(400).json({
@@ -21,8 +18,6 @@ const verifyToken = (req, res, next) => {
                     })
                 }
                 if (err) return res.status(400).json({message:err.message})
-                console.log("ithe user");
-                console.log(user);
                 req.user = user;
                 next();
             });
@@ -45,7 +40,6 @@ const verifyUser = (req, res, next) => {
     try {
         verifyToken(req, res, async () => {
             const checkuser = await user.findById(req.user.user)
-            console.log(checkuser);
             if (checkuser.isVerified) {
                 next();
             } else {
@@ -64,10 +58,7 @@ const verifyUser = (req, res, next) => {
 const verifyVendor = (req,res, next)=>{
     verifyToken(req,res, async()=>{
         const { vendor } = req.user
-        console.log("vendor");
-        console.log(vendor);
         const check = await Vendor.findById(vendor)
-        console.log(check);
         if (check) {
             next()
         }else{
@@ -80,12 +71,9 @@ const verifyVendor = (req,res, next)=>{
 
 
 const verifyAdmin = (req, res, next) => {
-    console.log("sdsdhjk");
     verifyToken(req, res, async () => {
         const { user } = req.user
-        console.log(user);
         const check = await admin.findById(user)
-        console.log(check);
         if (check.isAdmin) {
             next();
         } else {

@@ -235,7 +235,8 @@ exports.searchData = async (req, res) => {
                 as: 'category'
             }
         }, { $unwind: '$category' }])
-        res.json(hotel)
+        console.log(hotel);
+        res.status(200).json(hotel)
     } catch (error) {
         res.status(500).json({ message: error.message })
     }
@@ -244,15 +245,11 @@ exports.searchData = async (req, res) => {
 
 exports.getHotel = async (req, res) => {
     try {
-        console.log("sdhfksdj");
-        console.log(req.params.id);
         const check = await Room.aggregate([{
             $match: { _id: mongoose.Types.ObjectId(req.params.id) }
         }, {
 
         }])
-
-
         const room = await Room.aggregate([{
             $match: { _id: mongoose.Types.ObjectId(req.params.id) }
         },
@@ -348,8 +345,6 @@ exports.RazorpayPayment = async (req, res) => {
 
 
 exports.completeBooking = async (req, res) => {
-    console.log("completed booking");
-    console.log(req.body);
     const { checkout, rooms, pay, order, amount, razorpayment_id, razorpayId } = req.body
     const update = {
         PaymentType: pay,
@@ -357,11 +352,11 @@ exports.completeBooking = async (req, res) => {
         amount: amount,
         receipt: razorpayment_id,
         paymentId: razorpayId,
+        isBooked:true,
     }
     if (pay == "ONLINE") {
         const secret = process.env.RAZORPAY_KEY_SECRET;
         const razorpay_signature = req.headers['signature'];
-
         let hmac = crypto.createHmac('sha256', secret);
         hmac.update(order + "|" + razorpayment_id);
         const generated_signature = hmac.digest('hex');
