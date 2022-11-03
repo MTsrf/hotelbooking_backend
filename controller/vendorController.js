@@ -283,19 +283,11 @@ exports.addRoom = async(req,res)=>{
             checkout_time:checkout,
             bathroom:bathroom,
             isBlocked:false,
+            roomNumbers:no_of_rooms,
             category:mongoose.Types.ObjectId(category),
             property:mongoose.Types.ObjectId(property),
             vendor:mongoose.Types.ObjectId(vendor)
         }).save()
-        const roomNumbers = []
-        for (let i = 1; i <= no_of_rooms; i++) {  
-            roomNumbers.push({number:`A${i}`,isBooked:false})
-        }
-        console.log(roomNumbers);
-        const addRoom = await Room.updateOne({_id:roomData._id},{
-            $push:{ roomNumbers:roomNumbers}
-        })
-    
         res.status(200).json({
             roomData,success:true,message:"Successfully added"
         })

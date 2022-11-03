@@ -10,7 +10,9 @@ const Hotel = require('../models/Hotel');
 const { default: mongoose, mongo } = require("mongoose");
 const Razorpay = require('razorpay')
 const shortid = require('shortid')
-
+const moment = require('moment');
+const booking = require("../models/booking");
+const crypto = require('crypto')
 
 const razorpay = new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID,
@@ -278,42 +280,114 @@ exports.getHotel = async (req, res) => {
 }
 
 
+  
+
 exports.bookingHotel = async (req, res) => {
-    console.log(req.body);
+    const { hotel, phone_number, name, start, end, room, person } = req.body
+
+    const startDate = moment(start).format("ddd,ll")
+    const endDate = moment(end).format("ddd,ll")
+    const days = moment(end).diff(moment(start), 'days')
+    const create = new booking({
+        user: mongoose.Types.ObjectId(req.user.user),
+        room: mongoose.Types.ObjectId(hotel),
+        roomNumber: room,
+        Date: {
+            startDate:startDate,
+            endDate: endDate
+        },
+        days: days,
+        guest: person,
+        GuestName: name,
+        phone_number: phone_number,
+        isBooked:false,
+        completed:false,
+        cancel:false
+    })
+    try {
+        const response = await create.save()
+        res.status(200).json({ success: true, response })
+
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+    }
+
 }
 
 
 exports.RazorpayPayment = async (req, res) => {
     const { price } = req.body
-    console.log(price);
+    
     const payment_capture = 1
     const amount = price
     const currency = 'INR'
-    console.log(process.env.RAZORPAY_KEY_ID,process.env.RAZORPAY_KEY_SECRET);
-    console.log(razorpay);
-
     const options = {
-        amount:amount *100,
+        amount: amount * 100,
         currency,
-        receipt:shortid.generate(),
+        receipt: shortid.generate(),
         payment_capture
     }
-    console.log(options);
     try {
         const response = await razorpay.orders.create(options)
-        console.log("completed");
-        console.log(response);
         res.status(200).json({
-            id:response.id,
-            currency:response.currency,
-            amount:response.amount,
-            receipt:response.receipt
+            id: response.id,
+            currency: response.currency,
+            amount: response.amount,
+            receipt: response.receipt,
+            key_id: process.env.RAZORPAY_KEY_ID
         })
     } catch (err) {
         res.status(500).json({
-            message:err.message
+            message: err.message
         })
     }
 
 
+}
+230700488590
+
+exports.completeBooking = async(req,res)=>{
+    console.log("completed booking");
+    console.log(req.body);
+    const { checkout,rooms,pay,order,amount,razorpayment_id,razorpayId,razorpaySignature } = req.body
+    const update = {
+        PaymentType:pay,
+        orderId:order,
+        amount:amount,
+        receipt:razorpayment_id,
+        paymentId:razorpayId,
+        Signature:razorpaySignature
+    }
+    const secret = process.env.RAZORPAY_SECRET;
+
+    // const shasum = crypto.createHmac("sha256", secret);
+    // shasum.update(`${order}|${razorpayment_id}`);
+    // const digest = shasum.digest("hex");
+    // console.log(digest,razorpaySignature);
+    const generated_signature = hmac_sha256(order + "|" + razorpayment_id, secret);
+
+    console.log(generated_signature,razorpaySignature);
+    if (generated_signature === razorpaySignature) {
+        console.log("failed");
+        return res.status(400).json({message:"The Payment transaction not legit"})
+    }
+    res.status(200).json({msg:"sucesss"})
+    console.log("success");
+    // try {
+    //     if(pay == "ONLINE"){
+    //          res.status(200).json({payment:true})
+    //     }else{
+    //         const updatedfile = await booking.updateOne({
+    //             _id:mongoose.Types.ObjectId(checkout),room:mongoose.Types.ObjectId(rooms),user:mongoose.Types.ObjectId(req.user.user)
+    //         },{
+    //             $set:{
+    //                 ...update
+    //             }
+    //         },{new:true})
+    //         res.status(200).json({success:true})
+    //     }
+       
+    // } catch (error) {
+    //     res.status(500).json({message:error.message})
+    // }
 }

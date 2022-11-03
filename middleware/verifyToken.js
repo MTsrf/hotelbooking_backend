@@ -1,6 +1,9 @@
 const jwt = require('jsonwebtoken');
 const admin = require('../models/admin');
 const Vendor = require('../models/Vendor');
+const users = require('../models/user');
+const user = require('../models/user');
+
 
 const verifyToken = (req, res, next) => {
     console.log(req.headers.authorization);
@@ -41,9 +44,9 @@ const verifyToken = (req, res, next) => {
 const verifyUser = (req, res, next) => {
     try {
         verifyToken(req, res, async () => {
-            const user = await Applications.findById(req.user.data)
-            console.log(user);
-            if (!user.isAdmin) {
+            const checkuser = await user.findById(req.user.user)
+            console.log(checkuser);
+            if (checkuser.isVerified) {
                 next();
             } else {
                 return res.status(403).json({

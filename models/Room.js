@@ -21,7 +21,9 @@ const roomSchema = mongoose.Schema({
     room_type:{
         type:String
     },
-    roomNumbers: [{ number: String,isBooked:Boolean,unavailableDates: {type: [Date]}}],
+    roomNumbers: {
+        type:Number
+    },
     view:{
         type:String
     },

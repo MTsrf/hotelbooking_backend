@@ -4,6 +4,9 @@ const bcrypt = require('bcrypt');
 const { generateToken } = require("../helper/token");
 const categories = require("../models/categories");
 const Vendor = require("../models/Vendor");
+const Hotel = require("../models/Hotel");
+const { default: mongoose } = require("mongoose");
+const Room = require("../models/Room");
 
 
 exports.adminLogin = async (req, res) => {
@@ -83,6 +86,8 @@ exports.addCategory = async (req,res)=>{
 
 exports.deleteCategory = async(req,res)=>{
     try {
+        const hotel = await Hotel.deleteMany({category:mongoose.Types.ObjectId(req.body.category)})
+        const room = await Room.deleteMany({category:mongoose.Types.ObjectId(req.body.category)})
         let deleteData = await categories.deleteOne({category:req.body.category})
         res.status(200).json({success:true,message:"Deleted successfully"})
     } catch (error) {
