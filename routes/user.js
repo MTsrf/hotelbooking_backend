@@ -1,4 +1,4 @@
-const { user_register, sendSms, otpVerification, user_login, allRooms, getCategory, placeHotel, searchData, getHotel, bookingHotel, RazorpayPayment, completeBooking } = require('../controller/userController');
+const { user_register, sendSms, otpVerification, user_login, allRooms, getCategory, placeHotel, searchData, getHotel, bookingHotel, RazorpayPayment, completeBooking, getSingleSearch } = require('../controller/userController');
 const { verifyUser } = require('../middleware/verifyToken');
 const router = require('express').Router()
 
@@ -18,6 +18,8 @@ router.get('/getCategory',getCategory)
 router.get('/getAllPlace',placeHotel)
 
 router.post('/serachHotel',searchData)
+
+router.post('/oneSearch',getSingleSearch)
 
 router.get('/hotel/:id',getHotel)
 

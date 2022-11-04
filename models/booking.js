@@ -12,15 +12,15 @@ const bookingSchema = mongoose.Schema({
         required:[true,'room data required']
     },
     roomNumber:{
-        type:Array,
+        type:Number,
         required:[true,'Room number is required']
     },
     Date:{
         startDate:{
-            type:String
+            type:Date
         },
         endDate:{
-            type:String
+            type:Date
         }
     },
     days:{

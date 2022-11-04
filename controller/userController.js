@@ -213,10 +213,90 @@ exports.placeHotel = async (req, res) => {
     }
 }
 
+
+exports.getSingleSearch = async (req, res) => {
+    try {
+        const { hotelId, startDate, endDate, roomsCount } = req.body
+        console.log(req.body);
+        const start = new Date(startDate)
+        const end = new Date(endDate)
+        const hotel = await Room.aggregate([{
+            $match: {
+                _id: mongoose.Types.ObjectId(hotelId)
+            }
+        }, {
+            $lookup: {
+                from: 'hotels',
+                localField: 'property',
+                foreignField: '_id',
+                as: 'property'
+            }
+        }, { $unwind: '$property' }, {
+            $lookup: {
+                from: 'categories',
+                localField: 'category',
+                foreignField: '_id',
+                as: 'property'
+            }
+        }])
+        const bookedRooms = await booking.aggregate([{
+            $match: { isBooked: true }
+        }, { $match: { completed: false } }, { $match: { room: mongoose.Types.ObjectId(hotelId) } },
+        {
+            $match: {
+                $or: [
+                    {
+                        $and: [
+                            { 'Date.endDate': { $gte: start } },
+                            { 'Date.startDate': { $lte: end } },
+                        ],
+                    },
+                    {
+                        $and: [
+                            { 'Date.endDate': { $gte: end } },
+                            { 'Date.startDate': { $lte: start } },
+                        ],
+                    },
+                ],
+            },
+        }
+        ])
+        
+        if (bookedRooms.length == 0) {
+            return res.status(200).json({success:true})
+        }else{
+            let flag = 1;
+            for (const y in bookedRooms) {
+                if (hotel[0]._id.equals(bookedRooms[y].room)) {
+                    hotel[0].roomNumbers = hotel[0].roomNumbers - bookedRooms[y].roomNumber
+                    console.log(hotel[0].roomNumbers);
+                    if (
+                        hotel[0].roomNumbers == 0
+                        || hotel[0].roomNumbers < roomsCount
+                    ) {
+                        flag = 0;
+                        res.status(200).json({ success: false })
+                    }
+                }
+            }
+            if (flag == 1) {
+                return res.status(200).json({ success:true})
+            }
+        }
+       
+        
+
+    } catch (error) {
+        return res.status(500).json({ message: error.message })
+    }
+}
+
 exports.searchData = async (req, res) => {
     try {
-        console.log(req.body);
         const { destination, dates: [{ startDate, endDate }], options: { adult, children, room } } = req.body
+        const start = new Date(startDate)
+        const end = new Date(endDate)
+        console.log(room);
         const hotel = await Room.aggregate([{
             $lookup: {
                 from: 'hotels',
@@ -235,7 +315,46 @@ exports.searchData = async (req, res) => {
                 as: 'category'
             }
         }, { $unwind: '$category' }])
-        console.log(hotel);
+
+        const bookedRooms = await booking.aggregate([{
+            $match: { isBooked: true }
+        }, {
+            $match: { completed: false }
+        }, {
+            $match: {
+                $or: [
+                    {
+                        $and: [
+                            { 'Date.endDate': { $gte: start } },
+                            { 'Date.startDate': { $lte: end } },
+                        ],
+                    },
+                    {
+                        $and: [
+                            { 'Date.endDate': { $gte: end } },
+                            { 'Date.startDate': { $lte: start } },
+                        ],
+                    },
+                ],
+            },
+        }])
+        for (const x in hotel) {
+            for (const y in bookedRooms) {
+                if (hotel[x]._id.equals(bookedRooms[y].room)) {
+                    console.log(bookedRooms[y].room);
+                    hotel[x].roomNumbers = hotel[x].roomNumbers - bookedRooms[y].roomNumber;
+                    console.log(hotel[x].roomNumbers);
+                    if (
+                        hotel[x].roomNumbers == 0
+                        || hotel[x].roomNumbers < room
+                        ) {
+                        console.log("dskdjkl");
+                        hotel.splice(x, 1)
+                    }
+                }
+            }
+        }
+        //   console.log(hotel);
         res.status(200).json(hotel)
     } catch (error) {
         res.status(500).json({ message: error.message })
@@ -352,7 +471,7 @@ exports.completeBooking = async (req, res) => {
         amount: amount,
         receipt: razorpayment_id,
         paymentId: razorpayId,
-        isBooked:true,
+        isBooked: true,
     }
     if (pay == "ONLINE") {
         const secret = process.env.RAZORPAY_KEY_SECRET;
