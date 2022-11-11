@@ -8,6 +8,7 @@ const { sendVerificationEmail } = require("../helper/mailer")
 const jwt = require('jsonwebtoken')
 const mongoose = require('mongoose')
 const Room = require("../models/Room")
+const booking = require("../models/booking")
 
 exports.vendor_registration = async(req,res)=>{
     try {
@@ -302,5 +303,63 @@ exports.addAmenities = async(req,res)=>{
         console.log(req.body);
     } catch (error) {
         
+    }
+}
+
+
+exports.bookedDetails = async(req,res)=>{
+    try {
+        const booked = await booking.aggregate([
+            {
+                $lookup:{
+                    from:'users',
+                    localField:'user',
+                    foreignField:'_id',
+                    as:'user'
+                }
+            },{$unwind:'$user'},
+            {
+                $lookup:{
+                    from:'rooms',
+                    localField:'room',
+                    foreignField:'_id',
+                    as:'room'
+                }
+            },{$unwind:'$room'},
+            {
+                $match:{'room.vendor':mongoose.Types.ObjectId(req.user.vendor)}
+            },{
+                $lookup:{
+                    from:'hotels',
+                    localField:'room.property',
+                    foreignField:'_id',
+                    as:'property'
+                }
+            },{$unwind:'$property'},
+            {
+                $lookup:{
+                    from:'categories',
+                    localField:'room.category',
+                    foreignField:'_id',
+                    as:'category'
+                }
+            },{$unwind:'$category'}
+        ])
+        res.status(200).json(booked)
+    } catch (error) {
+        res.status(500).json({message:error.message})
+    }
+}
+
+exports.bookedDetailsUpdate = async(req,res)=>{
+    const {id} = req.body
+    try {
+        const update = await booking.findByIdAndUpdate(id,{
+            $set:req.query
+        },{new:true})
+        console.log(update);
+        res.status(200).json({success:true})
+    } catch (error) {
+        res.status(500).json({message:error.message})
     }
 }

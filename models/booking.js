@@ -26,6 +26,9 @@ const bookingSchema = mongoose.Schema({
     days:{
         type:String
     },
+    bookingId:{
+        type:String
+    },
     PaymentType:{
         type:String
     },

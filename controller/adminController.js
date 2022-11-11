@@ -7,7 +7,8 @@ const Vendor = require("../models/Vendor");
 const Hotel = require("../models/Hotel");
 const { default: mongoose } = require("mongoose");
 const Room = require("../models/Room");
-
+const booking = require('../models/booking');
+const user = require("../models/user");
 
 exports.adminLogin = async (req, res) => {
     try {
@@ -19,7 +20,7 @@ exports.adminLogin = async (req, res) => {
         }
         const check = await admin.findOne({ email })
         if (!check) {
-            return res.status(400).json({message:"Entered incorrect Email"})
+            return res.status(400).json({ message: "Entered incorrect Email" })
         }
         if (check.isAdmin) {
             if (!validateLength(password, 6, 16)) {
@@ -27,35 +28,35 @@ exports.adminLogin = async (req, res) => {
                     message: "the password must between 6 and 16 characters"
                 })
             }
-            
-            let passwordCheck =await bcrypt.compare(password,check.password)
-            
+
+            let passwordCheck = await bcrypt.compare(password, check.password)
+
             if (!passwordCheck) {
                 return res.status(400).json({
-                    message:"the password is incorrect"
+                    message: "the password is incorrect"
                 })
             }
-            const token = generateToken({user:check._id.toString()})
+            const token = generateToken({ user: check._id.toString() })
             return res.status(200).json({
-                success :true,
-                token:token
+                success: true,
+                token: token
             })
-        // res.send({
-        //     id: vendor._id,
-        //     name: vendor.full_name,
-        //     token: token,
-        //     verified: vendor.isVerified,
-        //     created:true,
-        //     message: "Register Success ! please activate your email to start",
-        //   });
-        }else{
+            // res.send({
+            //     id: vendor._id,
+            //     name: vendor.full_name,
+            //     token: token,
+            //     verified: vendor.isVerified,
+            //     created:true,
+            //     message: "Register Success ! please activate your email to start",
+            //   });
+        } else {
             return res.status(400).json({
                 message: "user not exist ..!"
             })
         }
     } catch (error) {
         res.status(500).json({
-            message:"server error" +error.message
+            message: "server error" + error.message
         })
     }
 
@@ -63,136 +64,216 @@ exports.adminLogin = async (req, res) => {
 
 
 
-exports.addCategory = async (req,res)=>{
+exports.addCategory = async (req, res) => {
     try {
         console.log(req.body);
-        const {category,description} = req.body
-        const check = await categories.findOne({category:category})
+        const { category, description } = req.body
+        const check = await categories.findOne({ category: category })
         if (check) {
             return res.status(400).json({
-                message:"The category already exist.."
+                message: "The category already exist.."
             })
         }
         const createdCategory = await new categories({
-            category:category,
-            description:description,
+            category: category,
+            description: description,
         }).save()
-        res.status(200).json({success:true,category:createdCategory,message:"Category Successfully added"})
+        res.status(200).json({ success: true, category: createdCategory, message: "Category Successfully added" })
     } catch (error) {
-        return res.status(500).json({message:error.message})
+        return res.status(500).json({ message: error.message })
     }
 }
 
 
-exports.deleteCategory = async(req,res)=>{
+exports.deleteCategory = async (req, res) => {
     try {
-        const hotel = await Hotel.deleteMany({category:mongoose.Types.ObjectId(req.body.category)})
-        const room = await Room.deleteMany({category:mongoose.Types.ObjectId(req.body.category)})
-        let deleteData = await categories.deleteOne({category:req.body.category})
-        res.status(200).json({success:true,message:"Deleted successfully"})
+        const hotel = await Hotel.deleteMany({ category: mongoose.Types.ObjectId(req.body.category) })
+        const room = await Room.deleteMany({ category: mongoose.Types.ObjectId(req.body.category) })
+        let deleteData = await categories.deleteOne({ category: req.body.category })
+        res.status(200).json({ success: true, message: "Deleted successfully" })
     } catch (error) {
-        res.status(500).json({message:error.message})
+        res.status(500).json({ message: error.message })
     }
 }
 
 
-exports.getCategory = async(req,res)=>{
+exports.getCategory = async (req, res) => {
     try {
         let getData = await categories.find()
-        res.status(200).json({getData,success:true})
+        res.status(200).json({ getData, success: true })
     } catch (error) {
-        res.status(500).json({message:error.message})
+        res.status(500).json({ message: error.message })
     }
 }
 
-exports.updateCategory = async(req,res)=>{
+exports.updateCategory = async (req, res) => {
     try {
-        let check = await categories.findOne({category:req.body.category})
+        let check = await categories.findOne({ category: req.body.category })
         if (check) {
-            return res.status(400).json({message:"Category name already exist..."})
+            return res.status(400).json({ message: "Category name already exist..." })
         }
-        let updateData = await categories.findByIdAndUpdate(req.params.id,{
-            $set:req.body
-        },{new:true})
-        res.status(200).json({updateData,success:true,message:"Category updated Successfully"})
+        let updateData = await categories.findByIdAndUpdate(req.params.id, {
+            $set: req.body
+        }, { new: true })
+        res.status(200).json({ updateData, success: true, message: "Category updated Successfully" })
     } catch (error) {
-        res.status(500).json({message:error.message})
+        res.status(500).json({ message: error.message })
     }
 }
 
 
 
-exports.getAllVendor = async(req,res)=>{
+exports.getAllVendor = async (req, res) => {
     try {
         let getvendor = await Vendor.find()
         res.json(getvendor)
     } catch (error) {
         res.status(500).json({
-            message:error.message
+            message: error.message
         })
     }
 }
 
 
-exports.approveVendor = async(req,res)=>{
-    try { 
+exports.approveVendor = async (req, res) => {
+    try {
         const { _id } = req.body
         console.log(_id);
-        const approve = await Vendor.findByIdAndUpdate(_id,{
-            $set:{
-                adminVerified:true
+        const approve = await Vendor.findByIdAndUpdate(_id, {
+            $set: {
+                adminVerified: true
             }
-        },{new:true})
+        }, { new: true })
         res.status(200).json({
             approve,
-            success:true,
-            message:"Vendor Approved Successfully.."
+            success: true,
+            message: "Vendor Approved Successfully.."
         })
     } catch (error) {
         res.status(500).json({
-            message:error.message
+            message: error.message
         })
     }
 }
 
 
 
-exports.blockedVendor = async(req,res)=>{
-    try {
-        const { _id } = req.body 
-        const blocked = await Vendor.findByIdAndUpdate(_id,{
-            $set:{
-                isBlocked:true
-            }
-        },{new:true})
-        res.status(200).json({
-            blocked,
-            success:true,
-            message:"Vendor Blocked Successfully"
-        })
-    } catch (error) {
-        return res.status(500).json({
-            message:error.message
-        })
-    }
-}
-
-exports.unBlockVendor = async(req,res)=>{
+exports.blockedVendor = async (req, res) => {
     try {
         const { _id } = req.body
-        const unblock = await Vendor.findByIdAndUpdate(_id,{
-            $set:{
-                isBlocked:false
+        const blocked = await Vendor.findByIdAndUpdate(_id, {
+            $set: {
+                isBlocked: true
             }
-        },{new:true})
+        }, { new: true })
         res.status(200).json({
-            unblock,
-            success:true,
-            message:"Vendor unblocked Successfully.."
+            blocked,
+            success: true,
+            message: "Vendor Blocked Successfully"
         })
     } catch (error) {
         return res.status(500).json({
-            message:error.message
+            message: error.message
         })
+    }
+}
+
+exports.unBlockVendor = async (req, res) => {
+    try {
+        const { _id } = req.body
+        const unblock = await Vendor.findByIdAndUpdate(_id, {
+            $set: {
+                isBlocked: false
+            }
+        }, { new: true })
+        res.status(200).json({
+            unblock,
+            success: true,
+            message: "Vendor unblocked Successfully.."
+        })
+    } catch (error) {
+        return res.status(500).json({
+            message: error.message
+        })
+    }
+}
+
+exports.bookedDetails = async (req, res) => {
+    try {
+        const booked = await booking.aggregate([
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'user',
+                    foreignField: '_id',
+                    as: 'user'
+                }
+            }, { $unwind: '$user' },
+            {
+                $lookup: {
+                    from: 'rooms',
+                    localField: 'room',
+                    foreignField: '_id',
+                    as: 'room'
+                }
+            }, { $unwind: '$room' },
+            {
+                $lookup: {
+                    from: 'hotels',
+                    localField: 'room.property',
+                    foreignField: '_id',
+                    as: 'property'
+                }
+            }, { $unwind: '$property' },
+            {
+                $lookup: {
+                    from: 'categories',
+                    localField: 'room.category',
+                    foreignField: '_id',
+                    as: 'category'
+                }
+            }, { $unwind: '$category' }
+        ])
+        res.status(200).json(booked)
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+    }
+}
+
+
+exports.getUsers = async (req, res) => {
+    try {
+        const usersData = await user.find({}, {
+            password: 0,
+            createdAt: 0,
+            updatedAt: 0
+        })
+        res.status(200).json(usersData)
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+
+    }
+}
+
+exports.deletUser = async (req, res) => {
+    try {
+        const deleteData = await user.findByIdAndDelete(req.params.id)
+        res.status(200).json({ success: true })
+    } catch (err) {
+        res.status(500).json({ message: err.message })
+    }
+}
+
+
+exports.manageUser = async (req, res) => {
+    try {
+        console.log(req.body.id, req.query);
+        const manageUser = await user.findByIdAndUpdate(req.body.id, {
+            $set: req.query
+        }, { new: true })
+        console.log(manageUser);
+        res.status(200).json({ success: true })
+    } catch (err) {
+        res.status(500).json({ message: err.message })
     }
 }

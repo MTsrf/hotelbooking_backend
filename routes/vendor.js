@@ -1,4 +1,4 @@
-const { vendor_registration, activateAccount, vendorLogin, getCategory, addHotel, getHotel, addRoom, addPhots, addLocation } = require('../controller/vendorController')
+const { vendor_registration, activateAccount, vendorLogin, getCategory, addHotel, getHotel, addRoom, addPhots, addLocation, bookedDetails, bookedDetailsUpdate } = require('../controller/vendorController')
 const { verifyVendor } = require('../middleware/verifyToken')
 const imageUpload = require('../middleware/imageUpload')
 const { uploadImage } = require('../controller/uploadController')
@@ -23,6 +23,8 @@ router.get('/getCategory',verifyVendor,getCategory)
 
 router.get('/getHotel/:id',verifyVendor,getHotel)
 
+router.get('/booked',verifyVendor,bookedDetails)
 
+router.patch('/updatedBooking',verifyVendor,bookedDetailsUpdate)
 
 module.exports = router

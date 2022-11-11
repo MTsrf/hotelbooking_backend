@@ -7,11 +7,15 @@ const user = require('../models/user');
 
 const verifyToken = (req, res, next) => {
     let token
+    console.log(req.headers.authorization);
     if (req.headers.authorization &&
         req.headers.authorization.startsWith('Bearer')) {
         try {
+
             token = req.headers.authorization.split(' ')[1]
+            console.log(token);
             jwt.verify(token, process.env.JWT_KEY, (err, user) => {
+                console.log(err);
                 if (err) {
                     return res.status(400).json({
                         message:err.message
@@ -27,7 +31,7 @@ const verifyToken = (req, res, next) => {
             })
         }
     }else{
-        console.log("not authorixed");
+        console.log("not authorized");
         return res.status(403).json({
             message: "You are not Authorized"
         })
@@ -38,6 +42,7 @@ const verifyToken = (req, res, next) => {
 
 const verifyUser = (req, res, next) => {
     try {
+        console.log("user");
         verifyToken(req, res, async () => {
             const checkuser = await user.findById(req.user.user)
             if (checkuser.isVerified) {
@@ -56,6 +61,7 @@ const verifyUser = (req, res, next) => {
 };
 
 const verifyVendor = (req,res, next)=>{
+    console.log("user");
     verifyToken(req,res, async()=>{
         const { vendor } = req.user
         const check = await Vendor.findById(vendor)

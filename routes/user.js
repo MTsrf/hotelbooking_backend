@@ -1,4 +1,4 @@
-const { user_register, sendSms, otpVerification, user_login, allRooms, getCategory, placeHotel, searchData, getHotel, bookingHotel, RazorpayPayment, completeBooking, getSingleSearch } = require('../controller/userController');
+const { user_register, sendSms, otpVerification, user_login, allRooms, getCategory, placeHotel, searchData, getHotel, bookingHotel, RazorpayPayment, completeBooking, getSingleSearch, completedRoomBooking, cancelBooking } = require('../controller/userController');
 const { verifyUser } = require('../middleware/verifyToken');
 const router = require('express').Router()
 
@@ -29,5 +29,8 @@ router.post('/payment',verifyUser,RazorpayPayment)
 
 router.post('/complete',verifyUser,completeBooking)
 
+router.get('/finishedbooking',verifyUser,completedRoomBooking)
+
+router.patch('/cancelBooking',verifyUser,cancelBooking)
 
 module.exports = router;

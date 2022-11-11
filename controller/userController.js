@@ -164,6 +164,11 @@ exports.user_login = async (req, res) => {
                 message: "The user not exist.."
             })
         }
+        if (!check.isVerified) {
+            return res.status(400).json({
+                message: "The Admin is Blocked"
+            })
+        }
 
         const passwordCheck = await bcrypt.compare(password, check.password)
         if (!passwordCheck) {
@@ -261,10 +266,10 @@ exports.getSingleSearch = async (req, res) => {
             },
         }
         ])
-        
+
         if (bookedRooms.length == 0) {
-            return res.status(200).json({success:true})
-        }else{
+            return res.status(200).json({ success: true })
+        } else {
             let flag = 1;
             for (const y in bookedRooms) {
                 if (hotel[0]._id.equals(bookedRooms[y].room)) {
@@ -280,11 +285,11 @@ exports.getSingleSearch = async (req, res) => {
                 }
             }
             if (flag == 1) {
-                return res.status(200).json({ success:true})
+                return res.status(200).json({ success: true })
             }
         }
-       
-        
+
+
 
     } catch (error) {
         return res.status(500).json({ message: error.message })
@@ -294,9 +299,9 @@ exports.getSingleSearch = async (req, res) => {
 exports.searchData = async (req, res) => {
     try {
         const { destination, dates: [{ startDate, endDate }], options: { adult, children, room } } = req.body
+        console.log("roomcount", room);
         const start = new Date(startDate)
         const end = new Date(endDate)
-        console.log(room);
         const hotel = await Room.aggregate([{
             $lookup: {
                 from: 'hotels',
@@ -341,21 +346,18 @@ exports.searchData = async (req, res) => {
         for (const x in hotel) {
             for (const y in bookedRooms) {
                 if (hotel[x]._id.equals(bookedRooms[y].room)) {
-                    console.log(bookedRooms[y].room);
-                    hotel[x].roomNumbers = hotel[x].roomNumbers - bookedRooms[y].roomNumber;
-                    console.log(hotel[x].roomNumbers);
-                    if (
-                        hotel[x].roomNumbers == 0
-                        || hotel[x].roomNumbers < room
-                        ) {
-                        console.log("dskdjkl");
+                    hotel[x].roomNumbers = hotel[x].roomNumbers - bookedRooms[y].roomNumber
+                    console.log(x, "times", hotel[x].roomNumbers);
+                    if (hotel[x].roomNumbers < room) {
+                        console.log(x, "timesend", hotel[x].roomNumbers);
                         hotel.splice(x, 1)
+
                     }
                 }
             }
         }
-        //   console.log(hotel);
         res.status(200).json(hotel)
+
     } catch (error) {
         res.status(500).json({ message: error.message })
     }
@@ -417,6 +419,7 @@ exports.bookingHotel = async (req, res) => {
         guest: person,
         GuestName: name,
         phone_number: phone_number,
+        bookingId: shortid.generate(),
         isBooked: false,
         completed: false,
         cancel: false
@@ -434,7 +437,6 @@ exports.bookingHotel = async (req, res) => {
 
 exports.RazorpayPayment = async (req, res) => {
     const { price } = req.body
-
     const payment_capture = 1
     const amount = price
     const currency = 'INR'
@@ -464,7 +466,11 @@ exports.RazorpayPayment = async (req, res) => {
 
 
 exports.completeBooking = async (req, res) => {
+
     const { checkout, rooms, pay, order, amount, razorpayment_id, razorpayId } = req.body
+    if (pay == "") {
+        return res.status(500).json({ message: 'Pay method not defined' })
+    }
     const update = {
         PaymentType: pay,
         orderId: order,
@@ -472,6 +478,7 @@ exports.completeBooking = async (req, res) => {
         receipt: razorpayment_id,
         paymentId: razorpayId,
         isBooked: true,
+
     }
     if (pay == "ONLINE") {
         const secret = process.env.RAZORPAY_KEY_SECRET;
@@ -492,6 +499,47 @@ exports.completeBooking = async (req, res) => {
                 ...update
             }
         }, { new: true })
+        res.status(200).json({ success: true, receipt: shortid.generate() })
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+    }
+}
+
+exports.completedRoomBooking = async (req, res) => {
+    try {
+        const completed = await booking.aggregate([{
+            $match: { user: mongoose.Types.ObjectId(req.user.user) }
+        }, {
+            $lookup: {
+                from: 'rooms',
+                localField: 'room',
+                foreignField: '_id',
+                as: 'room'
+            }
+        }, { $unwind: '$room' }, {
+            $lookup: {
+                from: 'hotels',
+                localField: 'room.property',
+                foreignField: '_id',
+                as: 'property'
+            }
+        }, { $unwind: '$property' }])
+        res.status(200).json({ success: true, completed })
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+    }
+}
+
+
+exports.cancelBooking = async (req, res) => {
+    const { id } = req.body
+    try {
+        const cancel = await booking.findByIdAndUpdate(id, {
+            $set: {
+                isBooked: false,
+                cancel: true
+            }
+        })
         res.status(200).json({ success: true })
     } catch (error) {
         res.status(500).json({ message: error.message })
