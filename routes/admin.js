@@ -1,5 +1,5 @@
 const express = require('express');
-const { adminLogin, addCategory, deleteCategory, getCategory, updateCategory, getAllVendor, approveVendor, blockedVendor, unBlockVendor, bookedDetails, getUsers, deletUser, manageUser } = require('../controller/adminController');
+const { adminLogin, addCategory, deleteCategory, getCategory, updateCategory, getAllVendor, approveVendor, blockedVendor, unBlockVendor, bookedDetails, getUsers, deletUser, manageUser, getAllHotel, blockRoom } = require('../controller/adminController');
 const { verifyAdmin } = require('../middleware/verifyToken');
 const router = express.Router();
 
@@ -29,5 +29,9 @@ router.get('/getAllUser', verifyAdmin, getUsers)
 router.delete("/deleteUser/:id", verifyAdmin, deletUser)
 
 router.put("/blockUser", verifyAdmin, manageUser)
+
+router.get("/getAllHotel", verifyAdmin, getAllHotel)
+
+router.patch("/blockRoom", verifyAdmin, blockRoom)
 
 module.exports = router

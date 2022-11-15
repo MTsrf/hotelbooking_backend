@@ -192,7 +192,7 @@ exports.user_login = async (req, res) => {
 
 exports.allRooms = async (req, res) => {
     try {
-        const getRoom = await Room.find().populate("property").populate("category")
+        const getRoom = await Room.find({ isBlocked: false }).populate("property").populate("category")
         res.json(getRoom)
     } catch (error) {
         return res.status(500).json({ message: error.message })
@@ -227,7 +227,7 @@ exports.getSingleSearch = async (req, res) => {
         const end = new Date(endDate)
         const hotel = await Room.aggregate([{
             $match: {
-                _id: mongoose.Types.ObjectId(hotelId)
+                _id: mongoose.Types.ObjectId(hotelId), isBlocked: false
             }
         }, {
             $lookup: {
@@ -302,7 +302,7 @@ exports.searchData = async (req, res) => {
         console.log("roomcount", room);
         const start = new Date(startDate)
         const end = new Date(endDate)
-        const hotel = await Room.aggregate([{
+        const hotel = await Room.aggregate([{ $match: { isBlocked: false } }, {
             $lookup: {
                 from: 'hotels',
                 localField: 'property',
@@ -373,7 +373,7 @@ exports.getHotel = async (req, res) => {
         }])
         const room = await Room.aggregate([{
             $match: { _id: mongoose.Types.ObjectId(req.params.id) }
-        },
+        }, { $match: { isBlocked: false } },
         {
             $lookup: {
                 from: 'hotels',

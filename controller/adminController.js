@@ -247,7 +247,7 @@ exports.getUsers = async (req, res) => {
             password: 0,
             createdAt: 0,
             updatedAt: 0
-        })
+        }, req.query)
         res.status(200).json(usersData)
     } catch (error) {
         res.status(500).json({ message: error.message })
@@ -267,7 +267,6 @@ exports.deletUser = async (req, res) => {
 
 exports.manageUser = async (req, res) => {
     try {
-        console.log(req.body.id, req.query);
         const manageUser = await user.findByIdAndUpdate(req.body.id, {
             $set: req.query
         }, { new: true })
@@ -275,5 +274,32 @@ exports.manageUser = async (req, res) => {
         res.status(200).json({ success: true })
     } catch (err) {
         res.status(500).json({ message: err.message })
+    }
+}
+
+exports.getAllHotel = async (req, res) => {
+    try {
+        const hotelData = await Room.find({}, {
+            room_type: 0,
+        }, req.query)
+            .populate("property", "property_name city phone_number")
+            .populate("category", "category")
+            .populate("vendor", "full_name")
+        res.status(200).json(hotelData)
+    } catch (err) {
+        res.status(500).json({ message: err.message })
+
+    }
+}
+
+
+exports.blockRoom = async (req, res) => {
+    try {
+        const blockData = await Room.findByIdAndUpdate(req.body.id, {
+            $set: req.query
+        }, { new: true })
+        res.status(200).json({ success: true })
+    } catch (error) {
+        res.status(500).json({ message: error.message })
     }
 }

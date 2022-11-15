@@ -18,21 +18,20 @@ const verifyToken = (req, res, next) => {
                 console.log(err);
                 if (err) {
                     return res.status(400).json({
-                        message:err.message
+                        message: err.message
                     })
                 }
-                if (err) return res.status(400).json({message:err.message})
                 req.user = user;
                 next();
             });
         } catch (error) {
-            return res.status(500).json({
+            return res.status(401).json({
                 message: error.message
             })
         }
-    }else{
+    } else {
         console.log("not authorized");
-        return res.status(403).json({
+        return res.status(401).json({
             message: "You are not Authorized"
         })
     }
@@ -42,34 +41,33 @@ const verifyToken = (req, res, next) => {
 
 const verifyUser = (req, res, next) => {
     try {
-        console.log("user");
         verifyToken(req, res, async () => {
             const checkuser = await user.findById(req.user.user)
             if (checkuser.isVerified) {
                 next();
             } else {
-                return res.status(403).json({
-                    message: "You are not Authorized"
+                return res.status(401).json({
+                    userBlocked: true, message: "You are not Authorized"
                 })
             }
         });
     } catch (error) {
-        return res.status(500).json({
+        return res.status(401).json({
             message: error.message
         })
     }
 };
 
-const verifyVendor = (req,res, next)=>{
+const verifyVendor = (req, res, next) => {
     console.log("user");
-    verifyToken(req,res, async()=>{
+    verifyToken(req, res, async () => {
         const { vendor } = req.user
         const check = await Vendor.findById(vendor)
-        if (check) {
+        if (!check.isBlocked) {
             next()
-        }else{
-            return res.status(403).json({
-                message:"You are not Authorized"
+        } else {
+            return res.status(401).json({
+                vendorBlocked: true, message: "You are not Authorized"
             })
         }
     })
@@ -83,11 +81,11 @@ const verifyAdmin = (req, res, next) => {
         if (check.isAdmin) {
             next();
         } else {
-            return res.status(403).json({
+            return res.status(401).json({
                 message: "You are not Authorized"
             })
         }
     });
 };
 
-module.exports = { verifyAdmin, verifyUser,verifyVendor }
+module.exports = { verifyAdmin, verifyUser, verifyVendor }
